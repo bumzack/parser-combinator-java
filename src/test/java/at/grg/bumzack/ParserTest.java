@@ -340,4 +340,62 @@ class ParserTest {
         assertThat(result.getErrorMsg()).isEqualTo(null);
         assertThat(result.getError()).isEqualTo(ParserStatus.OK);
     }
+
+    @Test
+    void testXmlELement_ok() {
+        final var xmlSingleElement = parser.xmlSingleElement();
+
+        final var expected = new XmlElement();
+        expected.setName("div");
+        expected.setAttributes(List.of(Pair.of("class", "float")));
+        expected.setChildren(null);
+
+
+        final var input = "<div class=\"float\"/>";
+        final var result = xmlSingleElement.parse(input);
+        assertThat(result.getOutput()).isEqualTo(expected);
+        assertThat(result.getInput()).isEqualTo("");
+        assertThat(result.getErrorMsg()).isEqualTo(null);
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
+
+    @Test
+    void testXmlParentElement_ok() {
+        final var parentElement = parser.xmlElement();
+
+        final var bottom = new XmlElement();
+        bottom.setName("bottom");
+        bottom.setAttributes(List.of(Pair.of("label", "Another Bottom")));
+        bottom.setChildren(null);
+
+        final var middle = new XmlElement();
+        middle.setName("middle");
+        middle.setAttributes(Collections.emptyList());
+        middle.setChildren(List.of(bottom));
+
+        final var semiBottom = new XmlElement();
+        semiBottom.setName("semi-bottom");
+        semiBottom.setAttributes(List.of(Pair.of("label", "Bottom")));
+        semiBottom.setChildren(null);
+
+        final var expected = new XmlElement();
+        expected.setName("top");
+        expected.setAttributes(List.of(Pair.of("label", "Top")));
+        expected.setChildren(List.of(semiBottom, middle));
+
+        final var input = "<top label=\"Top\">\n" +
+                "            <semi-bottom label=\"Bottom\"/>\n" +
+                "            <middle>\n" +
+                "                <bottom label=\"Another Bottom\"/>\n" +
+                "            </middle>\n" +
+                "        </top>";
+        final var result = parentElement.parse(input);
+
+        System.out.println("our XML " + result.getOutput());
+        System.out.println("\n\n");
+        assertThat(result.getOutput()).isEqualTo(expected);
+        assertThat(result.getInput()).isEqualTo("");
+        assertThat(result.getErrorMsg()).isEqualTo(null);
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
 }

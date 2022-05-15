@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -119,6 +120,21 @@ public class Parser {
             }
             return new Result<>(res1.getInput(),
                     mapFn.apply(res1.getOutput()),
+                    ParserStatus.OK,
+                    null);
+        };
+    }
+
+    public <A, B, T> ParserFunc<B> mapBiFunc(final ParserFunc<A> parser,
+                                             final BiFunction<T, A, B> mapBiFn,
+                                             final T param) {
+        return input -> {
+            final var res1 = parser.parse(input);
+            if (res1.getError().equals(ParserStatus.Error)) {
+                return new Result<>(null, null, ParserStatus.Error, input);
+            }
+            return new Result<>(res1.getInput(),
+                    mapBiFn.apply(param, res1.getOutput()),
                     ParserStatus.OK,
                     null);
         };
@@ -278,5 +294,132 @@ public class Parser {
                         attributePair()
                 )
         ).parse(input);
+    }
+
+    public ParserFunc<Pair<String, List<Pair<String, String>>>> xmlElementStart() {
+        return input -> {
+            return right(
+                    matchLiteral("<"),
+                    pair(
+                            identifier(),
+                            attributes()
+                    )
+            ).parse(input);
+        };
+    }
+
+    public ParserFunc<XmlElement> xmlSingleElement() {
+        return input -> {
+            final Function<Pair<String, List<Pair<String, String>>>, XmlElement> mapFn =
+                    p -> {
+                        final var xml = new XmlElement();
+                        xml.setName(p.getLeft());
+                        xml.setAttributes(p.getRight());
+                        return xml;
+                    };
+
+            return map(
+                    left(
+                            xmlElementStart(),
+                            matchLiteral("/>")
+                    ),
+                    mapFn
+            ).parse(input);
+        };
+    }
+
+    public ParserFunc<XmlElement> xmlOpenElement() {
+        return input -> {
+            final Function<Pair<String, List<Pair<String, String>>>, XmlElement> mapFn =
+                    p -> {
+                        final var xml = new XmlElement();
+                        xml.setName(p.getLeft());
+                        xml.setAttributes(p.getRight());
+                        return xml;
+                    };
+
+            return map(
+                    left(
+                            xmlElementStart(),
+                            matchLiteral(">")
+                    ),
+                    mapFn
+            ).parse(input);
+        };
+    }
+
+    public <A> ParserFunc<A> either(final ParserFunc<A> p1,
+                                    final ParserFunc<A> p2) {
+        return input -> {
+            final var res1 = p1.parse(input);
+            if (res1.getError().equals(ParserStatus.OK)) {
+                return res1;
+            }
+            return p2.parse(input);
+        };
+    }
+
+
+    public ParserFunc<String> xmlCloseElement(final String expectedName) {
+        return input -> {
+            final Predicate<String> pred = p -> StringUtils.equals(p, expectedName);
+
+            return pred(
+                    right(
+                            matchLiteral("</"),
+                            left(
+                                    identifier(),
+                                    matchLiteral(">")
+
+                            )),
+                    pred
+            ).parse(input);
+        };
+    }
+
+
+    public <A, B> ParserFunc<B> and_then(final ParserFunc<A> parser,
+                                         final Function<A, ParserFunc<B>> fun) {
+        return input -> {
+            final var res = parser.parse(input);
+            if (res.getError().equals(ParserStatus.OK)) {
+                return fun.apply(res.getOutput()).parse(res.getInput());
+            }
+            return new Result<>(null, null, ParserStatus.Error, input);
+        };
+    }
+
+
+    public ParserFunc<XmlElement> xmlParentElement() {
+        return input -> {
+            final BiFunction<XmlElement, List<XmlElement>, XmlElement> mapFn1 = (elem, l) -> {
+                elem.setChildren(l);
+                return elem;
+            };
+
+            final Function<XmlElement, ParserFunc<XmlElement>> andThenFn = xml -> mapBiFunc(
+                    left(
+                            zeroOrMore(xmlElement()),
+                            xmlCloseElement(xml.getName())
+                    ),
+                    mapFn1,
+                    xml
+            );
+
+            final ParserFunc<XmlElement> objectParserFunc = and_then(
+                    xmlOpenElement(),
+                    andThenFn
+            );
+
+            return objectParserFunc.parse(input);
+        };
+    }
+
+    public <A> ParserFunc<A> whitespaceWrap(final ParserFunc<A> parser) {
+        return input -> right(space0(), left(parser, space0())).parse(input);
+    }
+
+    public ParserFunc<XmlElement> xmlElement() {
+        return input -> whitespaceWrap(either(xmlSingleElement(), xmlParentElement())).parse(input);
     }
 }
