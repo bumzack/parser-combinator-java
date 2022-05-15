@@ -1,6 +1,7 @@
 package at.grg.bumzack;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -11,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 
 class ParserTest {
-    final Parser<String, String, String> parser = new Parser();
+    final Parser parser = new Parser();
 
     @Test
     void testMatchA_ok() {
@@ -44,7 +45,7 @@ class ParserTest {
 
     @Test
     void testIdentifier_ok() {
-        final var idenitifierFn = parser.idenitifier();
+        final var idenitifierFn = parser.identifier();
         final var result = idenitifierFn.parse("i-am-an-identifier");
         assertThat(result.getInput()).isEqualTo(StringUtils.EMPTY);
         assertThat(result.getOutput()).isEqualTo("i-am-an-identifier");
@@ -53,7 +54,7 @@ class ParserTest {
 
     @Test
     void testIdentifier_ok2() {
-        final var idenitifierFn = parser.idenitifier();
+        final var idenitifierFn = parser.identifier();
         final var result = idenitifierFn.parse("not entirely an identifier");
         assertThat(result.getInput()).isEqualTo(" entirely an identifier");
         assertThat(result.getOutput()).isEqualTo("not");
@@ -62,17 +63,18 @@ class ParserTest {
 
     @Test
     void testIdentifier_error() {
-        final var idenitifierFn = parser.idenitifier();
+        final var idenitifierFn = parser.identifier();
         final var result = idenitifierFn.parse("!not at all an identifier");
-        assertThat(result.getInput()).isEqualTo("!not at all an identifier");
+        assertThat(result.getInput()).isEqualTo(null);
         assertThat(result.getOutput()).isEqualTo(null);
         assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getErrorMsg()).isEqualTo("!not at all an identifier");
     }
 
     @Test
     void testPairRight_ok() {
         final var opener = parser.matchLiteral("<");
-        final var idenitifierFn = parser.idenitifier();
+        final var idenitifierFn = parser.identifier();
 
         final var tagOpenerRight = parser.pairRight(opener, idenitifierFn);
 
@@ -85,7 +87,7 @@ class ParserTest {
     @Test
     void testPairLeft_ok() {
         final var opener = parser.matchLiteral("<");
-        final var idenitifierFn = parser.idenitifier();
+        final var idenitifierFn = parser.identifier();
 
         final var tagOpenerLeft = parser.pairLeft(opener, idenitifierFn);
 
@@ -98,7 +100,7 @@ class ParserTest {
     @Test
     void testPair_error() {
         final var opener = parser.matchLiteral("<");
-        final var idenitifierFn = parser.idenitifier();
+        final var idenitifierFn = parser.identifier();
 
         final var tagOpener = parser.pairRight(opener, idenitifierFn);
 
@@ -111,7 +113,7 @@ class ParserTest {
     @Test
     void testPair_error2() {
         final var opener = parser.matchLiteral("<");
-        final var idenitifierFn = parser.idenitifier();
+        final var idenitifierFn = parser.identifier();
         final var tagOpener = parser.pairRight(opener, idenitifierFn);
 
         final var result = tagOpener.parse("<!oops");
@@ -123,7 +125,7 @@ class ParserTest {
     @Test
     void testMap_ok() {
         final ParserFunc<String> opener = parser.matchLiteral("<");
-        final ParserFunc<String> idenitifierFn = parser.idenitifier();
+        final ParserFunc<String> idenitifierFn = parser.identifier();
         final ParserFunc<String> tagOpener = parser.pairRight(opener, idenitifierFn);
 
         // ????
@@ -215,7 +217,7 @@ class ParserTest {
 
     @Test
     void testRight_ok() {
-        final ParserFunc<String> identifier = parser.idenitifier();
+        final ParserFunc<String> identifier = parser.identifier();
         final ParserFunc<String> literal = parser.matchLiteral("<");
         final ParserFunc<String> right = parser.right(literal, identifier);
 
@@ -227,7 +229,7 @@ class ParserTest {
 
     @Test
     void testLeft_ok() {
-        final ParserFunc<String> identifier = parser.idenitifier();
+        final ParserFunc<String> identifier = parser.identifier();
         final ParserFunc<String> literal = parser.matchLiteral("<");
         final ParserFunc<String> left = parser.left(literal, identifier);
 
@@ -237,4 +239,105 @@ class ParserTest {
         assertThat(result.getError()).isEqualTo(ParserStatus.OK);
     }
 
+    @Test
+    void testPred_ok() {
+        final var pred = parser.pred(parser.anyChar(), c -> c.equals('o'));
+
+        final var result = pred.parse("omg");
+        assertThat(result.getOutput()).isEqualTo('o');
+        assertThat(result.getInput()).isEqualTo("mg");
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
+
+    @Test
+    void testPred_error() {
+        final ParserFunc<Character> pred = parser.pred(parser.anyChar(), c -> c.equals('o'));
+
+        final var result = pred.parse("lol");
+        assertThat(result.getOutput()).isEqualTo(null);
+        assertThat(result.getInput()).isEqualTo(null);
+        assertThat(result.getErrorMsg()).isEqualTo("lol");
+        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+    }
+
+    @Test
+    void testSpace0_ok() {
+        final var space0 = parser.space0();
+
+        final var result = space0.parse("   lol");
+        assertThat(result.getOutput()).isEqualTo(List.of(' ', ' ', ' '));
+        assertThat(result.getInput()).isEqualTo("lol");
+        assertThat(result.getErrorMsg()).isEqualTo(null);
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
+
+    @Test
+    void testSpace1_ok() {
+        final var space1 = parser.space1();
+
+        final var result = space1.parse("   lol");
+        assertThat(result.getOutput()).isEqualTo(List.of(' ', ' ', ' '));
+        assertThat(result.getInput()).isEqualTo("lol");
+        assertThat(result.getErrorMsg()).isEqualTo(null);
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
+
+    @Test
+    void testSpace1_error() {
+        final var space1 = parser.space1();
+
+        final var result = space1.parse("lol");
+        assertThat(result.getOutput()).isEqualTo(null);
+        assertThat(result.getInput()).isEqualTo(null);
+        assertThat(result.getErrorMsg()).isEqualTo("lol");
+        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+    }
+
+
+    @Test
+    void testQuotedString_ok() {
+        final var quotedString = parser.quotedString();
+
+        final var result = quotedString.parse("\"Hello Joe!\"");
+        assertThat(result.getOutput()).isEqualTo("Hello Joe!");
+        assertThat(result.getInput()).isEqualTo("");
+        assertThat(result.getErrorMsg()).isEqualTo(null);
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
+
+    @Test
+    void testQuotedString_error() {
+        final var quotedString = parser.quotedString();
+
+        final var input = " Hello Joe!\"";
+        final var result = quotedString.parse(input);
+        assertThat(result.getOutput()).isEqualTo(null);
+        assertThat(result.getInput()).isEqualTo(null);
+        assertThat(result.getErrorMsg()).isEqualTo(input);
+        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+    }
+
+    @Test
+    void testAttributePair_ok() {
+        final var attributePair = parser.attributePair();
+
+        final var input = "one=\"1\"";
+        final var result = attributePair.parse(input);
+        assertThat(result.getOutput()).isEqualTo(Pair.of("one", "1"));
+        assertThat(result.getInput()).isEqualTo("");
+        assertThat(result.getErrorMsg()).isEqualTo(null);
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
+
+    @Test
+    void testAttributes_ok() {
+        final var attributes = parser.attributes();
+
+        final var input = " one=\"1\"    two=\"2\"";
+        final var result = attributes.parse(input);
+        assertThat(result.getOutput()).isEqualTo(List.of(Pair.of("one", "1"), Pair.of("two", "2")));
+        assertThat(result.getInput()).isEqualTo("");
+        assertThat(result.getErrorMsg()).isEqualTo(null);
+        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+    }
 }
