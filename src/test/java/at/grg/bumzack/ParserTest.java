@@ -19,28 +19,28 @@ class ParserTest {
         final var parseLetterA = parser.letterA();
         final var result = parseLetterA.parse("a XXXXsdlfsjf");
         System.out.println("result " + result);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
     void testMatchA_error() {
         final var parseLetterA = parser.letterA();
         final var result = parseLetterA.parse("b sdfsf fdsf d");
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
     void testMatchLiteral_ok() {
         final var literalParserAbc = parser.matchLiteral("abc");
         final var result = literalParserAbc.parse("abcabc asddasd");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
     void testMatchLiteral_error() {
         final var literalParserAbc = parser.matchLiteral("abc");
         final var result = literalParserAbc.parse("aba abc");
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
@@ -49,7 +49,7 @@ class ParserTest {
         final var result = idenitifierFn.parse("i-am-an-identifier");
         assertThat(result.getInput()).isEqualTo(StringUtils.EMPTY);
         assertThat(result.getOutput()).isEqualTo("i-am-an-identifier");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -58,7 +58,7 @@ class ParserTest {
         final var result = idenitifierFn.parse("not entirely an identifier");
         assertThat(result.getInput()).isEqualTo(" entirely an identifier");
         assertThat(result.getOutput()).isEqualTo("not");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -67,7 +67,7 @@ class ParserTest {
         final var result = idenitifierFn.parse("!not at all an identifier");
         assertThat(result.getInput()).isEqualTo(null);
         assertThat(result.getOutput()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
         assertThat(result.getErrorMsg()).isEqualTo("!not at all an identifier");
     }
 
@@ -81,7 +81,7 @@ class ParserTest {
         final var result = tagOpenerRight.parse("<my-first-element/>");
         assertThat(result.getInput()).isEqualTo("/>");
         assertThat(result.getOutput()).isEqualTo("my-first-element");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -94,7 +94,7 @@ class ParserTest {
         final var left = tagOpenerLeft.parse("<my-first-element/>");
         assertThat(left.getInput()).isEqualTo("/>");
         assertThat(left.getOutput()).isEqualTo("<");
-        assertThat(left.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(left.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -107,7 +107,7 @@ class ParserTest {
         final var result = tagOpener.parse("oops");
         assertThat(result.getErrorMsg()).isEqualTo("oops");
         assertThat(result.getOutput()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
@@ -119,7 +119,7 @@ class ParserTest {
         final var result = tagOpener.parse("<!oops");
         assertThat(result.getErrorMsg()).isEqualTo("!oops");
         assertThat(result.getOutput()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
@@ -137,7 +137,7 @@ class ParserTest {
 
         assertThat(result.getInput()).isEqualTo("/>");
         assertThat(result.getOutput()).isEqualTo("MY-FIRST-ELEMENT");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -152,7 +152,7 @@ class ParserTest {
         assertThat(r.get(0)).isEqualTo("ha");
         assertThat(r.get(1)).isEqualTo("ha");
         assertThat(r.get(2)).isEqualTo("ha");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -163,7 +163,7 @@ class ParserTest {
         final var result = oneormore.parse("ahaha");
 
         assertThat(result.getErrorMsg()).isEqualTo("ahaha");
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
@@ -174,7 +174,7 @@ class ParserTest {
         final var result = oneormore.parse("");
 
         assertThat(result.getErrorMsg()).isEqualTo("");
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
@@ -189,7 +189,7 @@ class ParserTest {
         assertThat(r.get(0)).isEqualTo("ha");
         assertThat(r.get(1)).isEqualTo("ha");
         assertThat(r.get(2)).isEqualTo("ha");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -201,7 +201,7 @@ class ParserTest {
 
         assertThat(result.getOutput()).isEqualTo(Collections.emptyList());
         assertThat(result.getInput()).isEqualTo("ahaha");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -212,7 +212,7 @@ class ParserTest {
         final var result = oneormore.parse("");
         assertThat(result.getOutput()).isEqualTo(Collections.emptyList());
         assertThat(result.getInput()).isEqualTo("");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -224,7 +224,7 @@ class ParserTest {
         final var result = right.parse("<my-first-element/>");
         assertThat(result.getOutput()).isEqualTo("my-first-element");
         assertThat(result.getInput()).isEqualTo("/>");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -236,7 +236,7 @@ class ParserTest {
         final var result = left.parse("<my-first-element/>");
         assertThat(result.getOutput()).isEqualTo("<");
         assertThat(result.getInput()).isEqualTo("/>");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -246,7 +246,7 @@ class ParserTest {
         final var result = pred.parse("omg");
         assertThat(result.getOutput()).isEqualTo('o');
         assertThat(result.getInput()).isEqualTo("mg");
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -257,7 +257,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(null);
         assertThat(result.getInput()).isEqualTo(null);
         assertThat(result.getErrorMsg()).isEqualTo("lol");
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
@@ -268,7 +268,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(List.of(' ', ' ', ' '));
         assertThat(result.getInput()).isEqualTo("lol");
         assertThat(result.getErrorMsg()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -279,7 +279,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(List.of(' ', ' ', ' '));
         assertThat(result.getInput()).isEqualTo("lol");
         assertThat(result.getErrorMsg()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -290,7 +290,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(null);
         assertThat(result.getInput()).isEqualTo(null);
         assertThat(result.getErrorMsg()).isEqualTo("lol");
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
 
@@ -302,7 +302,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo("Hello Joe!");
         assertThat(result.getInput()).isEqualTo("");
         assertThat(result.getErrorMsg()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -314,7 +314,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(null);
         assertThat(result.getInput()).isEqualTo(null);
         assertThat(result.getErrorMsg()).isEqualTo(input);
-        assertThat(result.getError()).isEqualTo(ParserStatus.Error);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.Error);
     }
 
     @Test
@@ -326,7 +326,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(Pair.of("one", "1"));
         assertThat(result.getInput()).isEqualTo("");
         assertThat(result.getErrorMsg()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -338,7 +338,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(List.of(Pair.of("one", "1"), Pair.of("two", "2")));
         assertThat(result.getInput()).isEqualTo("");
         assertThat(result.getErrorMsg()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -356,7 +356,7 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(expected);
         assertThat(result.getInput()).isEqualTo("");
         assertThat(result.getErrorMsg()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 
     @Test
@@ -396,6 +396,6 @@ class ParserTest {
         assertThat(result.getOutput()).isEqualTo(expected);
         assertThat(result.getInput()).isEqualTo("");
         assertThat(result.getErrorMsg()).isEqualTo(null);
-        assertThat(result.getError()).isEqualTo(ParserStatus.OK);
+        assertThat(result.getStatus()).isEqualTo(ParserStatus.OK);
     }
 }

@@ -18,12 +18,12 @@ import static org.apache.commons.lang3.StringUtils.isAlphanumeric;
 
 public class Parser {
 
-    public <A> ParserFunc letterA() {
+    public ParserFunc<String> letterA() {
         return input -> {
             if (Objects.equals(input.substring(0, 1), "a")) {
-                return new Result<A>(input.substring(1), null, ParserStatus.OK, null);
+                return new Result<>(input.substring(1), null, ParserStatus.OK, null);
             }
-            return new Result<A>(null, null, ParserStatus.Error, input);
+            return new Result<>(null, null, ParserStatus.Error, input);
         };
     }
 
@@ -38,7 +38,7 @@ public class Parser {
 
     public ParserFunc<String> identifier() {
         return input -> {
-            final StringBuilder matchedSB = new StringBuilder();
+            final var matchedSB = new StringBuilder();
 
             final var chars = new StringCharacterIterator(input);
 
@@ -62,18 +62,17 @@ public class Parser {
 
             return new Result<>(StringUtils.substring(input, nextIdx), matched, ParserStatus.OK, null);
         };
-
     }
 
     public <A, B> ParserFunc<A> pairLeft(final ParserFunc<A> p1,
                                          final ParserFunc<B> p2) {
         return input -> {
             final var res1 = p1.parse(input);
-            if (res1.getError().equals(ParserStatus.Error)) {
+            if (res1.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, input);
             }
-            final Result<B> res2 = p2.parse(res1.getInput());
-            if (res2.getError().equals(ParserStatus.Error)) {
+            final var res2 = p2.parse(res1.getInput());
+            if (res2.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, res1.getInput());
             }
             return new Result<>(res2.getInput(), res1.getOutput(), ParserStatus.OK, null);
@@ -84,11 +83,11 @@ public class Parser {
                                           final ParserFunc<B> p2) {
         return input -> {
             final var res1 = p1.parse(input);
-            if (res1.getError().equals(ParserStatus.Error)) {
+            if (res1.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, input);
             }
             final var res2 = p2.parse(res1.getInput());
-            if (res2.getError().equals(ParserStatus.Error)) {
+            if (res2.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, res1.getInput());
             }
             return new Result<>(res2.getInput(), res2.getOutput(), ParserStatus.OK, null);
@@ -99,11 +98,11 @@ public class Parser {
                                               final ParserFunc<B> p2) {
         return input -> {
             final var res1 = p1.parse(input);
-            if (res1.getError().equals(ParserStatus.Error)) {
+            if (res1.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, input);
             }
             final var res2 = p2.parse(res1.getInput());
-            if (res2.getError().equals(ParserStatus.Error)) {
+            if (res2.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, res1.getInput());
             }
             return new Result<>(res2.getInput(), Pair.of(res1.getOutput(), res2.getOutput()), ParserStatus.OK, null);
@@ -115,7 +114,7 @@ public class Parser {
                                     final Function<A, B> mapFn) {
         return input -> {
             final var res1 = parser.parse(input);
-            if (res1.getError().equals(ParserStatus.Error)) {
+            if (res1.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, input);
             }
             return new Result<>(res1.getInput(),
@@ -130,7 +129,7 @@ public class Parser {
                                              final T param) {
         return input -> {
             final var res1 = parser.parse(input);
-            if (res1.getError().equals(ParserStatus.Error)) {
+            if (res1.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, input);
             }
             return new Result<>(res1.getInput(),
@@ -150,9 +149,9 @@ public class Parser {
         return input -> pairLeft(p1, p2).parse(input);
     }
 
-    public <AAA> ParserFunc<List<AAA>> oneOrMore(final ParserFunc<AAA> parser) {
+    public <A> ParserFunc<List<A>> oneOrMore(final ParserFunc<A> parser) {
         return inp -> {
-            final var result = new ArrayList<AAA>();
+            final var result = new ArrayList<A>();
 
             var input = inp;
 
@@ -161,7 +160,7 @@ public class Parser {
             }
 
             final var res1 = parser.parse(input);
-            if (res1.getError().equals(ParserStatus.Error)) {
+            if (res1.getStatus().equals(ParserStatus.Error)) {
                 return new Result<>(null, null, ParserStatus.Error, input);
             }
             result.add(res1.getOutput());
@@ -169,12 +168,10 @@ public class Parser {
 
             var res = parser.parse(input);
 
-            while (res.getError().equals(ParserStatus.OK)) {
+            while (res.getStatus().equals(ParserStatus.OK)) {
                 result.add(res.getOutput());
                 input = res.getInput();
                 final var size = Optional.ofNullable(res.getInput())
-                        .filter(String.class::isInstance)
-                        .map(String.class::cast)
                         .map(String::length)
                         .orElse(-1);
 
@@ -182,16 +179,16 @@ public class Parser {
                     res = parser.parse(input);
                 } else {
                     // abort loop
-                    res.setError(ParserStatus.Error);
+                    res.setStatus(ParserStatus.Error);
                 }
             }
             return new Result<>(input, result, ParserStatus.OK, null);
         };
     }
 
-    public <AAA> ParserFunc<List<AAA>> zeroOrMore(final ParserFunc<AAA> parser) {
+    public <A> ParserFunc<List<A>> zeroOrMore(final ParserFunc<A> parser) {
         return inp -> {
-            final var result = new ArrayList<AAA>();
+            final var result = new ArrayList<A>();
 
             var input = inp;
 
@@ -201,7 +198,7 @@ public class Parser {
 
             var res = parser.parse(input);
 
-            while (res.getError().equals(ParserStatus.OK)) {
+            while (res.getStatus().equals(ParserStatus.OK)) {
                 result.add(res.getOutput());
                 input = res.getInput();
                 final var size = Optional.ofNullable(res.getInput())
@@ -214,7 +211,7 @@ public class Parser {
                     res = parser.parse(input);
                 } else {
                     // abort loop
-                    res.setError(ParserStatus.Error);
+                    res.setStatus(ParserStatus.Error);
                 }
             }
             return new Result<>(input, result, ParserStatus.OK, null);
@@ -232,8 +229,8 @@ public class Parser {
         };
     }
 
-    public <AAA> ParserFunc<AAA> pred(final ParserFunc<AAA> p1,
-                                      final Predicate<AAA> pred) {
+    public <A> ParserFunc<A> pred(final ParserFunc<A> p1,
+                                  final Predicate<A> pred) {
         return input -> {
             final var res = p1.parse(input);
 
@@ -297,15 +294,13 @@ public class Parser {
     }
 
     public ParserFunc<Pair<String, List<Pair<String, String>>>> xmlElementStart() {
-        return input -> {
-            return right(
-                    matchLiteral("<"),
-                    pair(
-                            identifier(),
-                            attributes()
-                    )
-            ).parse(input);
-        };
+        return input -> right(
+                matchLiteral("<"),
+                pair(
+                        identifier(),
+                        attributes()
+                )
+        ).parse(input);
     }
 
     public ParserFunc<XmlElement> xmlSingleElement() {
@@ -352,7 +347,7 @@ public class Parser {
                                     final ParserFunc<A> p2) {
         return input -> {
             final var res1 = p1.parse(input);
-            if (res1.getError().equals(ParserStatus.OK)) {
+            if (res1.getStatus().equals(ParserStatus.OK)) {
                 return res1;
             }
             return p2.parse(input);
@@ -382,7 +377,7 @@ public class Parser {
                                          final Function<A, ParserFunc<B>> fun) {
         return input -> {
             final var res = parser.parse(input);
-            if (res.getError().equals(ParserStatus.OK)) {
+            if (res.getStatus().equals(ParserStatus.OK)) {
                 return fun.apply(res.getOutput()).parse(res.getInput());
             }
             return new Result<>(null, null, ParserStatus.Error, input);

@@ -4,16 +4,16 @@ public class Result<OUTPUT> {
 
     private String input;
     private OUTPUT output;
-    private ParserStatus error;
+    private ParserStatus status;
     private String errorMsg;
 
     public Result() {
     }
 
-    public Result(String input, OUTPUT output, ParserStatus error, String errorMsg) {
+    public Result(final String input, final OUTPUT output, final ParserStatus status, final String errorMsg) {
         this.input = input;
         this.output = output;
-        this.error = error;
+        this.status = status;
         this.errorMsg = errorMsg;
     }
 
@@ -33,12 +33,12 @@ public class Result<OUTPUT> {
         this.output = output;
     }
 
-    public ParserStatus getError() {
-        return error;
+    public ParserStatus getStatus() {
+        return status;
     }
 
-    public void setError(ParserStatus error) {
-        this.error = error;
+    public void setStatus(ParserStatus status) {
+        this.status = status;
     }
 
     public String getErrorMsg() {
@@ -54,7 +54,7 @@ public class Result<OUTPUT> {
         return "Result{" +
                 "input='" + input + '\'' +
                 ", output=" + output +
-                ", error=" + error +
+                ", status=" + status +
                 ", errorMsg='" + errorMsg + '\'' +
                 '}';
     }
