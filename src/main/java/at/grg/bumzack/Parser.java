@@ -18,7 +18,7 @@ import static org.apache.commons.lang3.StringUtils.isAlphanumeric;
 
 public class Parser {
 
-    public ParserFunc<String> letterA() {
+    public static ParserFunc<String> letterA() {
         return input -> {
             if (Objects.equals(input.substring(0, 1), "a")) {
                 return new Result<>(input.substring(1), null, ParserStatus.OK, null);
@@ -27,7 +27,7 @@ public class Parser {
         };
     }
 
-    public ParserFunc<String> matchLiteral(final String expected) {
+    public static ParserFunc<String> matchLiteral(final String expected) {
         return input -> {
             if (Objects.equals(input.substring(0, expected.length()), expected)) {
                 return new Result<>(input.substring(expected.length()), expected, ParserStatus.OK, null);
@@ -36,7 +36,7 @@ public class Parser {
         };
     }
 
-    public ParserFunc<String> identifier() {
+    public static ParserFunc<String> identifier() {
         return input -> {
             final var matchedSB = new StringBuilder();
 
@@ -64,8 +64,8 @@ public class Parser {
         };
     }
 
-    public <A, B> ParserFunc<A> pairLeft(final ParserFunc<A> p1,
-                                         final ParserFunc<B> p2) {
+    public static <A, B> ParserFunc<A> pairLeft(final ParserFunc<A> p1,
+                                                final ParserFunc<B> p2) {
         return input -> {
             final var res1 = p1.parse(input);
             if (res1.getStatus().equals(ParserStatus.Error)) {
@@ -79,8 +79,8 @@ public class Parser {
         };
     }
 
-    public <A, B> ParserFunc<B> pairRight(final ParserFunc<A> p1,
-                                          final ParserFunc<B> p2) {
+    public static <A, B> ParserFunc<B> pairRight(final ParserFunc<A> p1,
+                                                 final ParserFunc<B> p2) {
         return input -> {
             final var res1 = p1.parse(input);
             if (res1.getStatus().equals(ParserStatus.Error)) {
@@ -94,8 +94,8 @@ public class Parser {
         };
     }
 
-    public <A, B> ParserFunc<Pair<A, B>> pair(final ParserFunc<A> p1,
-                                              final ParserFunc<B> p2) {
+    public static <A, B> ParserFunc<Pair<A, B>> pair(final ParserFunc<A> p1,
+                                                     final ParserFunc<B> p2) {
         return input -> {
             final var res1 = p1.parse(input);
             if (res1.getStatus().equals(ParserStatus.Error)) {
@@ -110,8 +110,8 @@ public class Parser {
     }
 
 
-    public <A, B> ParserFunc<B> map(final ParserFunc<A> parser,
-                                    final Function<A, B> mapFn) {
+    public static <A, B> ParserFunc<B> map(final ParserFunc<A> parser,
+                                           final Function<A, B> mapFn) {
         return input -> {
             final var res1 = parser.parse(input);
             if (res1.getStatus().equals(ParserStatus.Error)) {
@@ -124,9 +124,9 @@ public class Parser {
         };
     }
 
-    public <A, B, T> ParserFunc<B> mapBiFunc(final ParserFunc<A> parser,
-                                             final BiFunction<T, A, B> mapBiFn,
-                                             final T param) {
+    public static <A, B, T> ParserFunc<B> mapBiFunc(final ParserFunc<A> parser,
+                                                    final BiFunction<T, A, B> mapBiFn,
+                                                    final T param) {
         return input -> {
             final var res1 = parser.parse(input);
             if (res1.getStatus().equals(ParserStatus.Error)) {
@@ -139,17 +139,17 @@ public class Parser {
         };
     }
 
-    public <A, B> ParserFunc<B> right(final ParserFunc<A> p1,
-                                      final ParserFunc<B> p2) {
+    public static <A, B> ParserFunc<B> right(final ParserFunc<A> p1,
+                                             final ParserFunc<B> p2) {
         return input -> pairRight(p1, p2).parse(input);
     }
 
-    public <A, B> ParserFunc<A> left(final ParserFunc<A> p1,
-                                     final ParserFunc<B> p2) {
+    public static <A, B> ParserFunc<A> left(final ParserFunc<A> p1,
+                                            final ParserFunc<B> p2) {
         return input -> pairLeft(p1, p2).parse(input);
     }
 
-    public <A> ParserFunc<List<A>> oneOrMore(final ParserFunc<A> parser) {
+    public static <A> ParserFunc<List<A>> oneOrMore(final ParserFunc<A> parser) {
         return inp -> {
             final var result = new ArrayList<A>();
 
@@ -186,7 +186,7 @@ public class Parser {
         };
     }
 
-    public <A> ParserFunc<List<A>> zeroOrMore(final ParserFunc<A> parser) {
+    public static <A> ParserFunc<List<A>> zeroOrMore(final ParserFunc<A> parser) {
         return inp -> {
             final var result = new ArrayList<A>();
 
@@ -219,7 +219,7 @@ public class Parser {
     }
 
 
-    public ParserFunc<Character> anyChar() {
+    public static ParserFunc<Character> anyChar() {
         return input -> {
             final var chars = new StringCharacterIterator(input);
             if (chars.current() != CharacterIterator.DONE) {
@@ -229,8 +229,8 @@ public class Parser {
         };
     }
 
-    public <A> ParserFunc<A> pred(final ParserFunc<A> p1,
-                                  final Predicate<A> pred) {
+    public static <A> ParserFunc<A> pred(final ParserFunc<A> p1,
+                                         final Predicate<A> pred) {
         return input -> {
             final var res = p1.parse(input);
 
@@ -242,22 +242,22 @@ public class Parser {
     }
 
 
-    public ParserFunc<Character> whiteSpace() {
+    public static ParserFunc<Character> whiteSpace() {
         return input -> {
             final ParserFunc<Character> p = pred(anyChar(), c -> StringUtils.isWhitespace(String.valueOf(c)));
             return p.parse(input);
         };
     }
 
-    public ParserFunc<List<Character>> space0() {
+    public static ParserFunc<List<Character>> space0() {
         return input -> zeroOrMore(whiteSpace()).parse(input);
     }
 
-    public ParserFunc<List<Character>> space1() {
+    public static ParserFunc<List<Character>> space1() {
         return input -> oneOrMore(whiteSpace()).parse(input);
     }
 
-    public ParserFunc<String> quotedString() {
+    public static ParserFunc<String> quotedString() {
         return input -> {
             final Function<List<Character>, String> mapFn = l -> l.stream().map(String::valueOf).collect(Collectors.joining());
 
@@ -274,7 +274,7 @@ public class Parser {
         };
     }
 
-    public ParserFunc<Pair<String, String>> attributePair() {
+    public static ParserFunc<Pair<String, String>> attributePair() {
         return input -> pair(
                 identifier(),
                 right(
@@ -284,7 +284,7 @@ public class Parser {
         ).parse(input);
     }
 
-    public ParserFunc<List<Pair<String, String>>> attributes() {
+    public static ParserFunc<List<Pair<String, String>>> attributes() {
         return input -> zeroOrMore(
                 right(
                         space1(),
@@ -293,7 +293,7 @@ public class Parser {
         ).parse(input);
     }
 
-    public ParserFunc<Pair<String, List<Pair<String, String>>>> xmlElementStart() {
+    public static ParserFunc<Pair<String, List<Pair<String, String>>>> xmlElementStart() {
         return input -> right(
                 matchLiteral("<"),
                 pair(
@@ -303,7 +303,7 @@ public class Parser {
         ).parse(input);
     }
 
-    public ParserFunc<XmlElement> xmlSingleElement() {
+    public static ParserFunc<XmlElement> xmlSingleElement() {
         return input -> {
             final Function<Pair<String, List<Pair<String, String>>>, XmlElement> mapFn =
                     p -> {
@@ -323,7 +323,7 @@ public class Parser {
         };
     }
 
-    public ParserFunc<XmlElement> xmlOpenElement() {
+    public static ParserFunc<XmlElement> xmlOpenElement() {
         return input -> {
             final Function<Pair<String, List<Pair<String, String>>>, XmlElement> mapFn =
                     p -> {
@@ -343,8 +343,8 @@ public class Parser {
         };
     }
 
-    public <A> ParserFunc<A> either(final ParserFunc<A> p1,
-                                    final ParserFunc<A> p2) {
+    public static <A> ParserFunc<A> either(final ParserFunc<A> p1,
+                                           final ParserFunc<A> p2) {
         return input -> {
             final var res1 = p1.parse(input);
             if (res1.getStatus().equals(ParserStatus.OK)) {
@@ -355,7 +355,7 @@ public class Parser {
     }
 
 
-    public ParserFunc<String> xmlCloseElement(final String expectedName) {
+    public static ParserFunc<String> xmlCloseElement(final String expectedName) {
         return input -> {
             final Predicate<String> pred = p -> StringUtils.equals(p, expectedName);
 
@@ -373,8 +373,8 @@ public class Parser {
     }
 
 
-    public <A, B> ParserFunc<B> and_then(final ParserFunc<A> parser,
-                                         final Function<A, ParserFunc<B>> fun) {
+    public static <A, B> ParserFunc<B> and_then(final ParserFunc<A> parser,
+                                                final Function<A, ParserFunc<B>> fun) {
         return input -> {
             final var res = parser.parse(input);
             if (res.getStatus().equals(ParserStatus.OK)) {
@@ -385,7 +385,7 @@ public class Parser {
     }
 
 
-    public ParserFunc<XmlElement> xmlParentElement() {
+    public static ParserFunc<XmlElement> xmlParentElement() {
         return input -> {
             final BiFunction<XmlElement, List<XmlElement>, XmlElement> mapFn1 = (elem, l) -> {
                 elem.setChildren(l);
@@ -410,11 +410,11 @@ public class Parser {
         };
     }
 
-    public <A> ParserFunc<A> whitespaceWrap(final ParserFunc<A> parser) {
+    public static <A> ParserFunc<A> whitespaceWrap(final ParserFunc<A> parser) {
         return input -> right(space0(), left(parser, space0())).parse(input);
     }
 
-    public ParserFunc<XmlElement> xmlElement() {
+    public static ParserFunc<XmlElement> xmlElement() {
         return input -> whitespaceWrap(either(xmlSingleElement(), xmlParentElement())).parse(input);
     }
 }
