@@ -274,74 +274,6 @@ public class Parser {
         };
     }
 
-    public static ParserFunc<Pair<String, String>> attributePair() {
-        return input -> pair(
-                identifier(),
-                right(
-                        matchLiteral("="),
-                        quotedString()
-                )
-        ).parse(input);
-    }
-
-    public static ParserFunc<List<Pair<String, String>>> attributes() {
-        return input -> zeroOrMore(
-                right(
-                        space1(),
-                        attributePair()
-                )
-        ).parse(input);
-    }
-
-    public static ParserFunc<Pair<String, List<Pair<String, String>>>> xmlElementStart() {
-        return input -> right(
-                matchLiteral("<"),
-                pair(
-                        identifier(),
-                        attributes()
-                )
-        ).parse(input);
-    }
-
-    public static ParserFunc<XmlElement> xmlSingleElement() {
-        return input -> {
-            final Function<Pair<String, List<Pair<String, String>>>, XmlElement> mapFn =
-                    p -> {
-                        final var xml = new XmlElement();
-                        xml.setName(p.getLeft());
-                        xml.setAttributes(p.getRight());
-                        return xml;
-                    };
-
-            return map(
-                    left(
-                            xmlElementStart(),
-                            matchLiteral("/>")
-                    ),
-                    mapFn
-            ).parse(input);
-        };
-    }
-
-    public static ParserFunc<XmlElement> xmlOpenElement() {
-        return input -> {
-            final Function<Pair<String, List<Pair<String, String>>>, XmlElement> mapFn =
-                    p -> {
-                        final var xml = new XmlElement();
-                        xml.setName(p.getLeft());
-                        xml.setAttributes(p.getRight());
-                        return xml;
-                    };
-
-            return map(
-                    left(
-                            xmlElementStart(),
-                            matchLiteral(">")
-                    ),
-                    mapFn
-            ).parse(input);
-        };
-    }
 
     public static <A> ParserFunc<A> either(final ParserFunc<A> p1,
                                            final ParserFunc<A> p2) {
@@ -354,25 +286,6 @@ public class Parser {
         };
     }
 
-
-    public static ParserFunc<String> xmlCloseElement(final String expectedName) {
-        return input -> {
-            final Predicate<String> pred = p -> StringUtils.equals(p, expectedName);
-
-            return pred(
-                    right(
-                            matchLiteral("</"),
-                            left(
-                                    identifier(),
-                                    matchLiteral(">")
-
-                            )),
-                    pred
-            ).parse(input);
-        };
-    }
-
-
     public static <A, B> ParserFunc<B> and_then(final ParserFunc<A> parser,
                                                 final Function<A, ParserFunc<B>> fun) {
         return input -> {
@@ -384,37 +297,7 @@ public class Parser {
         };
     }
 
-
-    public static ParserFunc<XmlElement> xmlParentElement() {
-        return input -> {
-            final BiFunction<XmlElement, List<XmlElement>, XmlElement> mapFn = (elem, l) -> {
-                elem.setChildren(l);
-                return elem;
-            };
-
-            final Function<XmlElement, ParserFunc<XmlElement>> andThenFn = xml -> mapBiFunc(
-                    left(
-                            zeroOrMore(xmlElement()),
-                            xmlCloseElement(xml.getName())
-                    ),
-                    mapFn,
-                    xml
-            );
-
-            final ParserFunc<XmlElement> parser = and_then(
-                    xmlOpenElement(),
-                    andThenFn
-            );
-
-            return parser.parse(input);
-        };
-    }
-
     public static <A> ParserFunc<A> whitespaceWrap(final ParserFunc<A> parser) {
         return input -> right(space0(), left(parser, space0())).parse(input);
-    }
-
-    public static ParserFunc<XmlElement> xmlElement() {
-        return input -> whitespaceWrap(either(xmlSingleElement(), xmlParentElement())).parse(input);
     }
 }
