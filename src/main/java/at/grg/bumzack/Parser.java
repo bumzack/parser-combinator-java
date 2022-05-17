@@ -387,7 +387,7 @@ public class Parser {
 
     public static ParserFunc<XmlElement> xmlParentElement() {
         return input -> {
-            final BiFunction<XmlElement, List<XmlElement>, XmlElement> mapFn1 = (elem, l) -> {
+            final BiFunction<XmlElement, List<XmlElement>, XmlElement> mapFn = (elem, l) -> {
                 elem.setChildren(l);
                 return elem;
             };
@@ -397,16 +397,16 @@ public class Parser {
                             zeroOrMore(xmlElement()),
                             xmlCloseElement(xml.getName())
                     ),
-                    mapFn1,
+                    mapFn,
                     xml
             );
 
-            final ParserFunc<XmlElement> objectParserFunc = and_then(
+            final ParserFunc<XmlElement> parser = and_then(
                     xmlOpenElement(),
                     andThenFn
             );
 
-            return objectParserFunc.parse(input);
+            return parser.parse(input);
         };
     }
 
