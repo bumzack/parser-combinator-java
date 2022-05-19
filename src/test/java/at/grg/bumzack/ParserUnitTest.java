@@ -11,8 +11,7 @@ import static at.grg.bumzack.Parser.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-class ParserTest {
-
+public class ParserUnitTest {
     @Test
     void testMatchA_ok() {
         final var parseLetterA = letterA();

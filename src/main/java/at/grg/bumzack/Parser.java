@@ -241,10 +241,16 @@ public class Parser {
         };
     }
 
-
     public static ParserFunc<Character> whiteSpace() {
         return input -> {
             final ParserFunc<Character> p = pred(anyChar(), c -> StringUtils.isWhitespace(String.valueOf(c)));
+            return p.parse(input);
+        };
+    }
+
+    public static ParserFunc<Character> startComment() {
+        return input -> {
+            final ParserFunc<Character> p = whitespaceWrap(pred(anyChar(), c -> StringUtils.equals(String.valueOf(c), "#")));
             return p.parse(input);
         };
     }

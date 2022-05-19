@@ -9,8 +9,7 @@ import java.util.List;
 import static at.grg.bumzack.SimpleXmlElementParser.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class SimpleXmlElementParserTest {
-
+public class SimpleXmlElementParserTest {
     @Test
     void testAttributePair_ok() {
         final var attributePair = attributePair();
